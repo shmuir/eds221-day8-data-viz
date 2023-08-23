@@ -1,5 +1,5 @@
 ---
-title: "Data Viz"
+title: "Data Visualization"
 format: html
 editor: visual
 ---
@@ -91,7 +91,7 @@ ggplot(lizards, aes(x = total_length, y = weight, color = common_name)) +
   scale_x_log10()
 ```
 
-Scale colors 
+Scale colors
 
 ```{r}
 ggplot(lizards, aes(x = total_length, y = weight, color = weight)) +
@@ -100,7 +100,6 @@ ggplot(lizards, aes(x = total_length, y = weight, color = weight)) +
   theme_minimal() +
   scale_color_gradientn(colors = c("#adbfa8", "#3a5e3d", "#2a362b"))
 ```
-
 
 ```{r}
 lizard_counts <- lizards %>% 
@@ -120,6 +119,68 @@ ggplot(data = lizard_counts, aes(x = date, y = n)) +
   scale_x_date(breaks = scales::breaks_width("3 years"),
                labels = scales::label_date("'%y")) +
   theme_linedraw()
+```
+
+#### Annotations, thresholds, and repulsive labels
+
+```{r}
+ggplot(gapminder, aes(x = lifeExp, y = gdpPercap)) +
+  geom_point() +
+  annotate("text", x = 60, y = 90000, label = "A Label!") +
+  geom_hline(yintercept = 70000, linetype = "dotted", color = "#3a5e3d") +
+  geom_vline(xintercept = mean(gapminder$lifeExp), linetype = "dashed", color = "#adbfa8") +
+  theme_minimal()
+```
+
+```{r}
+gapminder %>%
+  filter(year == 2002,
+         continent == "Europe") %>%
+  ggplot(., aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(shape = 23, size = 4, fill = "#adbfa8", color ="#3a5e3d" ) + #can look up ggplot shapes
+  geom_text_repel(aes(label = country)) + #ggrepel
+  theme_light() +
+  labs(x = "GDP per Capita", y = "Life Expenctancy")
+```
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  ggplot(., aes(x = gdpPercap, y = lifeExp)) +
+  geom_point() +
+  gghighlight(continent == "Oceania", label_key = country) +
+  theme_light() +
+  labs(x = "GDP per Capita", y = "Life Expenctancy")
+```
+
+## Maps
+
+```{r}
+jornada_veg <- read_sf(here("data_raw", "spatial_vegetation", "doc.kml")) %>%
+  select(name = Name)
+```
+
+-   read_sf() has "sticky geometry" meaning the spatial components will stay even if you only select one variable
+-   spatial data with two attributes
+    -   geometry: polygons, file of different nodes to make the shape
+
+```{r}
+ggplot() +
+  geom_sf(data = jornada_veg, aes(fill = name), color = NA) +
+  theme_minimal() +
+  scale_fill_paletteer_d(palette = "khroma::soil") #view(palettes_d_names)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = jornada_veg, aes(fill = name), color = NA) +
+  theme_minimal() +
+  scale_fill_paletteer_d(palette = "khroma::soil") +
+  theme(panel.background = element_rect(color = "#2a362b", fill = "#3a5e3d", size = 3),
+        plot.background = element_rect(fill = "#adbfa8"),
+        panel.grid = element_line(color = "grey", linewidth = 0.25),
+        axis.text.x = element_text(color = "#2a362b"),
+        axis.text.y = element_text(color = "#2a362b"))
 ```
 
 
