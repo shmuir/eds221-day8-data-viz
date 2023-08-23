@@ -1,0 +1,127 @@
+---
+title: "Data Viz"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(patchwork)
+library(ggrepel)
+library(gghighlight)
+library(paletteer)
+library(ggExtra)
+library(ggbeeswarm)
+library(gapminder)
+library(sf)
+```
+
+## Data Wrangling
+
+```{r}
+lizards <- read_csv(here("data_tidy", "lizards.csv")) %>%
+  mutate(date = mdy(date))
+
+lizards_subset <- lizards %>%
+  filter(common_name %in% c("western whiptail", "colorado checkered", "eastern fence")) %>%
+  mutate(total_length_cm = total_length / 10) %>%
+  group_by(common_name, site) %>%
+  summarise(mean_length_cm = mean(total_length_cm, na.rm = TRUE), 
+            sd_length_cm = sd(total_length_cm, na.rm = TRUE))
+lizards_subset
+```
+
+## Data Viz
+
+#### Basic visualization
+
+```{r}
+ggplot(lizards, aes(x = total_length, y = weight, color = common_name)) +
+  geom_point() +
+  labs(x = "Total Length (mm)", y = "Weight (g)", color = "Common Name") +
+  theme_minimal() 
+```
+
+#### Faceting
+
+```{r}
+ggplot(lizards, aes(x = total_length, y = weight, color = common_name)) +
+  geom_point() +
+  facet_wrap(~common_name, scales = "free") +
+  labs(x = "Total Length (mm)", y = "Weight (g)", color = "Common Name") +
+  theme_minimal()
+```
+
+#### Bar Chart
+
+```{r}
+lizard_counts <- lizards %>%
+  group_by(common_name) %>%
+  count(name = "count")
+
+ggplot(lizard_counts, aes(x = count, y = fct_reorder(common_name, count))) +
+  geom_col(fill = "#c2c3d1", color = "black") +
+  labs(y = "Common Name", x = "Total Count") +
+  theme_light()
+```
+
+#### Scales
+
+```{r}
+ggplot(lizards, aes(x = total_length, y = weight, color = common_name)) +
+  geom_point() +
+  labs(x = "Total Length (mm)", y = "Weight (g)", color = "Common Name") +
+  theme_minimal() 
+
+ggplot(lizards, aes(x = total_length, y = weight, color = common_name)) +
+  geom_point() +
+  scale_x_continuous(breaks = c(0, 250, 500), 
+                     limits = c(0, 500)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 70, by = 10), 
+                     limits = c(0, 70)) +
+  labs(x = "Total Length (mm)", y = "Weight (g)", color = "Common Name") +
+  theme_minimal()
+
+ggplot(lizards, aes(x = total_length, y = weight, color = common_name)) +
+  geom_point() +
+  labs(x = "Total Length (mm)", y = "Weight (g)", color = "Common Name") +
+  theme_minimal() +
+  scale_x_log10()
+```
+
+Scale colors 
+
+```{r}
+ggplot(lizards, aes(x = total_length, y = weight, color = weight)) +
+  geom_point() +
+  labs(x = "Total Length (mm)", y = "Weight (g)", color = "Common Name") +
+  theme_minimal() +
+  scale_color_gradientn(colors = c("#adbfa8", "#3a5e3d", "#2a362b"))
+```
+
+
+```{r}
+lizard_counts <- lizards %>% 
+  count(date)
+
+ggplot(data = lizard_counts, aes(x = date, y = n)) +
+  geom_line() +
+  
+
+ggplot(data = lizard_counts, aes(x = date, y = n)) +
+  geom_line() +
+  scale_x_date(breaks = scales::breaks_pretty()) +
+  theme_linedraw()
+
+ggplot(data = lizard_counts, aes(x = date, y = n)) +
+  geom_line() +
+  scale_x_date(breaks = scales::breaks_width("3 years"),
+               labels = scales::label_date("'%y")) +
+  theme_linedraw()
+```
+
+
+
+
